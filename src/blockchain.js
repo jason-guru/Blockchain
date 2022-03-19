@@ -136,7 +136,7 @@ class Blockchain {
                     reject('Verification failed');
                 }
             } else {
-                reject('timeout')
+                reject('Timeout, please create new validation request.')
             }
         });
     }
@@ -188,15 +188,21 @@ class Blockchain {
         return new Promise(async (resolve, reject) => {
             await self.chain.forEach(async chain => {
                 try {
-                    let bData = await chain.getBData();
-                    if(bData.owner === address) {
-                        stars.push(bData)
+                    if(chain.height != 0) {
+                        let bData = await chain.getBData();
+                        if(bData.owner && bData.owner === address) {
+                            stars.push(bData)
+                        }
                     }
                 } catch(error) {
-                    console.log(error);
+                    reject(error);
                 }
             });
-            resolve(stars);
+            if(stars.length > 0) {
+                resolve(stars);
+            } else {
+                resolve(null);
+            }
         });
     }
 
