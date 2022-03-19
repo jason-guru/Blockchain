@@ -126,7 +126,7 @@ class Blockchain {
         return new Promise(async (resolve, reject) => {
             let messageTime = parseInt(message.split(':')[1]);
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
-            let timeDiff = messageTime - currentTime;
+            let timeDiff =  currentTime - messageTime;
             if(timeDiff < (5*60)) {
                 if(bitcoinMessage.verify(message, address, signature)) {
                     let block = new BlockClass.Block({owner: address, star});
