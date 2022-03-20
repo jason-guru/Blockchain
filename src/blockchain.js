@@ -72,8 +72,9 @@ class Blockchain {
                     let newHeight = previousBlock.height + 1;
                     newBlock.height = newHeight;
                     self.height = newHeight;
-                    if(await !self.validateChain()) {
-                        reject(null);
+                    let validation = await self.validateChain();
+                    if(!validation.isValid) {
+                        reject('Chain verification failed.');
                     }
                 } else {
                     self.height = 0;
@@ -126,12 +127,16 @@ class Blockchain {
         return new Promise(async (resolve, reject) => {
             let messageTime = parseInt(message.split(':')[1]);
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
-            let timeDiff =  currentTime - messageTime;
-            if(timeDiff < (5*60)) {
+            let timeDiff =  Math.floor((currentTime - messageTime) / 60);
+            if(timeDiff < 5) {
                 if(bitcoinMessage.verify(message, address, signature)) {
                     let block = new BlockClass.Block({owner: address, star});
-                    self._addBlock(block);
-                    resolve(block);
+                    try {
+                        await self._addBlock(block);
+                        resolve(block);
+                    } catch (error) {
+                        reject(error);
+                    }
                 } else {
                     reject('Verification failed');
                 }
@@ -216,13 +221,31 @@ class Blockchain {
         let self = this;
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
-            await self.chain.forEach(async chain => {
-                let isValid = await chain.validate();
-                if(isValid == false) {
-                    errorLog.push(chain);
-                    resolve(errorLog);
+            let results = [];
+            for( let i = 0; i < self.chain.length; i++ ) {
+                let block = self.chain[i];
+                let previousBlockHeight = block.height - 1;
+                let validationResult = await block.validate();
+                if(validationResult) {
+                    if(block.height != 0) {
+                        let previousBlock = await self.getBlockByHeight(previousBlockHeight);
+                        if(previousBlock.hash === block.previousBlockHash) {
+                            results.push(true)
+                        } else {
+                            errorLog.push('Hash mismatched.');
+                            results.push(false)
+                        }
+                    } else {
+                        results.push(true)
+                    }
+                } else {
+                    errorLog.push('Invalid block.');
+                    results.push(false)
                 }
-                resolve(isValid);
+            }
+            resolve({
+                errors: errorLog,
+                isValid: results.every((result) => result)
             });
         });
     }
