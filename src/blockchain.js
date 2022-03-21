@@ -45,7 +45,11 @@ class Blockchain {
      */
     getChainHeight() {
         return new Promise((resolve, reject) => {
-            resolve(this.height);
+            if(this.height) {
+                resolve(this.height);
+            } else {
+                reject('Error getting height.')
+            }
         });
     }
 
@@ -85,7 +89,7 @@ class Blockchain {
                 resolve(newBlock);
                 
             } else {
-                reject(null);
+                reject('Block not found.');
             }
         });
     }
@@ -99,9 +103,13 @@ class Blockchain {
      * @param {*} address 
      */
     requestMessageOwnershipVerification(address) {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             let ownershipMessage = `${address}:${new Date().getTime().toString().slice(0,-3)}:starRegistry`;
-            resolve(ownershipMessage);
+            if(ownershipMessage) {
+                resolve(ownershipMessage);
+            } else {
+                reject('Error generating ownership message.')
+            }
         });
     }
 
@@ -159,7 +167,7 @@ class Blockchain {
             if(block) {
                 resolve(block);
             } else {
-                resolve(null);
+                reject('Block Not Found!');
             }
         });
     }
@@ -176,7 +184,7 @@ class Blockchain {
             if(block){
                 resolve(block);
             } else {
-                resolve(null);
+                reject('Block Not Found!');
             }
         });
     }
@@ -222,6 +230,9 @@ class Blockchain {
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
             let results = [];
+            if(self.chain.length == 0) {
+                reject('Chain does not exist.')
+            }
             for( let i = 0; i < self.chain.length; i++ ) {
                 let block = self.chain[i];
                 let previousBlockHeight = block.height - 1;

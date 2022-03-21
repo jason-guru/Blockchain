@@ -45,6 +45,9 @@ class Block {
             // Recalculate the hash of the Block
             let hash = SHA256(JSON.stringify(cloneBlock)).toString();
             cloneBlock.hash = oldHash;
+            if(!hash) {
+                reject('Error generating validation hash.')
+            }
             // Comparing if the hashes changed
             if(hash !== cloneBlock.hash) {
                 // Returning the Block is not valid

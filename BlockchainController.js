@@ -24,16 +24,15 @@ class BlockchainController {
         this.app.get("/block/height/:height", async (req, res) => {
             if(req.params.height) {
                 const height = parseInt(req.params.height);
-                let block = await this.blockchain.getBlockByHeight(height);
-                if(block){
+                try {
+                    let block = await this.blockchain.getBlockByHeight(height);
                     return res.status(200).json(block);
-                } else {
-                    return res.status(404).send("Block Not Found!");
+                } catch (error) {
+                    return res.status(404).send(error);
                 }
             } else {
                 return res.status(404).send("Block Not Found! Review the Parameters!");
             }
-            
         });
     }
 
@@ -42,11 +41,11 @@ class BlockchainController {
         this.app.post("/requestValidation", async (req, res) => {
             if(req.body.address) {
                 const address = req.body.address;
-                const message = await this.blockchain.requestMessageOwnershipVerification(address);
-                if(message){
+                try {
+                    const message = await this.blockchain.requestMessageOwnershipVerification(address);
                     return res.status(200).json(message);
-                } else {
-                    return res.status(500).send("An error happened!");
+                } catch (error) {
+                    return res.status(500).send(error);
                 }
             } else {
                 return res.status(500).send("Check the Body Parameter!");
@@ -83,11 +82,12 @@ class BlockchainController {
         this.app.get("/block/hash/:hash", async (req, res) => {
             if(req.params.hash) {
                 const hash = req.params.hash;
-                let block = await this.blockchain.getBlockByHash(hash);
-                if(block){
+                let block;
+                try {
+                    block = await this.blockchain.getBlockByHash(hash);
                     return res.status(200).json(block);
-                } else {
-                    return res.status(404).send("Block Not Found!");
+                } catch (error) {
+                    return res.status(404).send(error);
                 }
             } else {
                 return res.status(404).send("Block Not Found! Review the Parameters!");
